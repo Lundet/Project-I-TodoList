@@ -60,11 +60,45 @@ class Program
 
     static void LoadTasks()
     {
-        // Load tasks from a file
-        // If the file does not exist, create a new file
-        // Implement error handling for file reading (e.g., corrupted or missing data)
+        string filePath = "tasks.txt";
+
+        // Clear the existing tasks list to prevent duplicates
+        tasks.Clear(); // Clears the existing tasks list
+
+        if (!File.Exists(filePath))
+        {
+            File.Create(filePath).Close();
+            return;
+        }
+
+        try
+        {
+            using (StreamReader reader = new StreamReader(filePath))
+            {
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    string[] parts = line.Split('|');
+                    if (parts.Length == 4 &&
+                        DateTime.TryParse(parts[1], out DateTime dueDate) &&
+                        bool.TryParse(parts[3], out bool status))
+                    {
+                        tasks.Add(new TaskItem(parts[0], dueDate, parts[2]) { Status = status });
+                    }
+                    else
+                    {
+                        Console.WriteLine("Error: Corrupted data found in file.");
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error reading file: {ex.Message}");
+        }
     }
-     
+
+
     static void ShowMenu()
     {
         while (true)
@@ -191,6 +225,22 @@ class Program
 
     static void SaveAndQuit()
     {
-        // Implementation for saving tasks and quitting the program
+        string filePath = "tasks.txt";
+        try
+        {
+            using (StreamWriter writer = new StreamWriter(filePath))
+            {
+                foreach (var task in tasks)
+                {
+                    writer.WriteLine($"{task.Title}|{task.DueDate}|{task.Project}|{task.Status}");
+                }
+            }
+            Console.WriteLine("Tasks saved successfully.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving file: {ex.Message}");
+        }
+        Environment.Exit(0);
     }
 }
