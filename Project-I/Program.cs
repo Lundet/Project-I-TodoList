@@ -45,11 +45,11 @@ class Program
         // Directly create some example tasks here
         tasks = new List<TaskItem>
         {
-        new TaskItem("Complete project report", new DateTime(2023, 12, 1), "Work"),
-        new TaskItem("Buy groceries", new DateTime(2023, 11, 25), "Personal"),
-        new TaskItem("Schedule dentist appointment", new DateTime(2023, 12, 5), "Health"),
-        new TaskItem("Prepare presentation", new DateTime(2023, 12, 7), "Work"),
-        new TaskItem("Call plumber", new DateTime(2023, 11, 28), "Home")
+            new TaskItem("Complete project report", new DateTime(2023, 12, 1), "Work"),
+            new TaskItem("Buy groceries", new DateTime(2023, 11, 25), "Personal"),
+            new TaskItem("Schedule dentist appointment", new DateTime(2023, 12, 5), "Health"),
+            new TaskItem("Prepare presentation", new DateTime(2023, 12, 7), "Work"),
+            new TaskItem("Call plumber", new DateTime(2023, 11, 28), "Home")
         };
         // Mark the "Buy groceries" task as done
         tasks[1].Status = true;
@@ -63,30 +63,36 @@ class Program
         string filePath = "tasks.txt";
 
         // Clear the existing tasks list to prevent duplicates
-        tasks.Clear(); // Clears the existing tasks list
+        tasks.Clear(); // Clears the existing tasks list 
 
         if (!File.Exists(filePath))
         {
+            // Create the file if it does not exist
             File.Create(filePath).Close();
             return;
         }
 
         try
         {
+            //
             using (StreamReader reader = new StreamReader(filePath))
             {
                 string line;
+
                 while ((line = reader.ReadLine()) != null)
                 {
+                    // Split the line into parts using '|' as the delimiter
                     string[] parts = line.Split('|');
                     if (parts.Length == 4 &&
                         DateTime.TryParse(parts[1], out DateTime dueDate) &&
                         bool.TryParse(parts[3], out bool status))
                     {
+                        // Add the task to the list if the data is valid
                         tasks.Add(new TaskItem(parts[0], dueDate, parts[2]) { Status = status });
                     }
                     else
                     {
+                        // Print an error message if the data is corrupted
                         Console.WriteLine("Error: Corrupted data found in file.");
                     }
                 }
@@ -94,10 +100,10 @@ class Program
         }
         catch (Exception ex)
         {
+            // Print an error message if there is an exception while reading the file
             Console.WriteLine($"Error reading file: {ex.Message}");
         }
     }
-
 
     static void ShowMenu()
     {
@@ -158,12 +164,15 @@ class Program
         switch (sortOption)
         {
             case "1":
+                // Sort tasks by project
                 sortedTasks = tasks.OrderBy(task => task.Project).ToList();
                 break;
             case "2":
+                // Sort tasks by due date
                 sortedTasks = tasks.OrderBy(task => task.DueDate).ToList();
                 break;
             default:
+                // Display unsorted tasks if the option is invalid
                 Console.WriteLine("Invalid option. Displaying unsorted tasks.");
                 sortedTasks = tasks;
                 break;
@@ -177,11 +186,16 @@ class Program
         foreach (var task in sortedTasks)
         {
             // Print each task in a formatted row
+            if (task.Status)
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+            }
             Console.WriteLine("| {0,-20} | {1,-12} | {2,-15} | {3,-10} |",
                 task.Title.Length > 20 ? task.Title.Substring(0, 17) + "..." : task.Title,
                 task.DueDate.ToString("MM/dd/yyyy"),  // Use short date format for readability
                 task.Project.Length > 15 ? task.Project.Substring(0, 12) + "..." : task.Project,
                 task.Status ? "Done" : "Pending");
+            Console.ResetColor();
         }
 
         Console.WriteLine("--------------------------------------------------------------");
@@ -191,29 +205,36 @@ class Program
 
     static void AddTask()
     {
-        Console.Write("Enter task title: ");
-        string title = Console.ReadLine();
-        if (string.IsNullOrWhiteSpace(title))
+        string title;
+        while (true)
         {
-            Console.WriteLine("Title cannot be empty.");
-            return;
+            Console.Write("Enter task title: ");
+            title = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(title))
+                break;
+            Console.WriteLine("Title cannot be empty. Please try again.");
         }
 
-        Console.Write("Enter task due date (MM/dd/yyyy): ");
-        if (!DateTime.TryParse(Console.ReadLine(), out DateTime dueDate) || dueDate <= DateTime.Now)
+        DateTime dueDate;
+        while (true)
         {
+            Console.Write("Enter task due date (MM/dd/yyyy): ");
+            if (DateTime.TryParse(Console.ReadLine(), out dueDate) && dueDate > DateTime.Now)
+                break;
             Console.WriteLine("Invalid due date. Please enter a future date in the format MM/dd/yyyy.");
-            return;
         }
 
-        Console.Write("Enter task project: ");
-        string project = Console.ReadLine();
-        if (string.IsNullOrWhiteSpace(project))
+        string project;
+        while (true)
         {
-            Console.WriteLine("Project cannot be empty.");
-            return;
+            Console.Write("Enter task project: ");
+            project = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(project))
+                break;
+            Console.WriteLine("Project cannot be empty. Please try again.");
         }
 
+        // Add the new task to the list
         tasks.Add(new TaskItem(title, dueDate, project));
         Console.WriteLine("Task added successfully.");
     }
@@ -232,6 +253,7 @@ class Program
             {
                 foreach (var task in tasks)
                 {
+                    // Write each task to the file in the format: Title|DueDate|Project|Status
                     writer.WriteLine($"{task.Title}|{task.DueDate}|{task.Project}|{task.Status}");
                 }
             }
@@ -239,8 +261,10 @@ class Program
         }
         catch (Exception ex)
         {
+            // Print an error message if there is an exception while saving the file
             Console.WriteLine($"Error saving file: {ex.Message}");
         }
-        Environment.Exit(0);
+        Environment.Exit(0); // Exit the program
     }
 }
+
