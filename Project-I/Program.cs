@@ -1,6 +1,5 @@
 ﻿
 
-
 // Class for Tasks - Contains properties for task status (bool), title (string), due date (DateTime), and project (string)
 
 // Constructor to initialize the task status, title, due date, and project
@@ -43,16 +42,16 @@ class Program
     static void Main(string[] args)
     {
         // Directly create some example tasks here
-        tasks = new List<TaskItem>
-        {
-            new TaskItem("Complete project report", new DateTime(2023, 12, 1), "Work"),
-            new TaskItem("Buy groceries", new DateTime(2023, 11, 25), "Personal"),
-            new TaskItem("Schedule dentist appointment", new DateTime(2023, 12, 5), "Health"),
-            new TaskItem("Prepare presentation", new DateTime(2023, 12, 7), "Work"),
-            new TaskItem("Call plumber", new DateTime(2023, 11, 28), "Home")
-        };
+        //tasks = new List<TaskItem>
+        //{
+        //    new TaskItem("Complete project report", new DateTime(2023, 12, 1), "Work"),
+        //    new TaskItem("Buy groceries", new DateTime(2023, 11, 25), "Personal"),
+        //    new TaskItem("Schedule dentist appointment", new DateTime(2023, 12, 5), "Health"),
+        //    new TaskItem("Prepare presentation", new DateTime(2023, 12, 7), "Work"),
+        //    new TaskItem("Call plumber", new DateTime(2023, 11, 28), "Home")
+        //};
         // Mark the "Buy groceries" task as done
-        tasks[1].Status = true;
+        //tasks[1].Status = true;
 
         LoadTasks(); // Load tasks from a file
         ShowMenu();  // Show the menu
@@ -74,7 +73,7 @@ class Program
 
         try
         {
-            //
+            // Read the file line by line
             using (StreamReader reader = new StreamReader(filePath))
             {
                 string line;
@@ -159,6 +158,7 @@ class Program
         Console.Write("Select an option: ");
 
         string sortOption = Console.ReadLine();
+
         List<TaskItem> sortedTasks = new List<TaskItem>();
 
         switch (sortOption)
@@ -194,6 +194,7 @@ class Program
                 task.Title.Length > 20 ? task.Title.Substring(0, 17) + "..." : task.Title,
                 task.DueDate.ToString("MM/dd/yyyy"),  // Use short date format for readability
                 task.Project.Length > 15 ? task.Project.Substring(0, 12) + "..." : task.Project,
+                // Display "Done" or "Pending" based on the task status
                 task.Status ? "Done" : "Pending");
             Console.ResetColor();
         }
@@ -241,7 +242,104 @@ class Program
 
     static void EditTask()
     {
-        // Implementation for editing a task
+        // Check if there are tasks to edit
+        if (tasks.Count == 0)
+        {
+            Console.WriteLine("No tasks available to edit.");
+            Console.WriteLine("Press any key to return to the menu...");
+            Console.ReadKey();
+            return;
+        }
+
+        // List all tasks for the user to select
+        Console.WriteLine("Select a task to edit:");
+        for (int i = 0; i < tasks.Count; i++)
+        {
+            Console.WriteLine($"{i + 1}. {tasks[i].Title} (Due: {tasks[i].DueDate:MM/dd/yyyy}, Project: {tasks[i].Project}, Status: {(tasks[i].Status ? "Done" : "Pending")})");
+        }
+
+        // Get the user's choice
+        int taskIndex;
+        while (true)
+        {
+
+            Console.Write("Enter the number of the task to edit: ");
+            if (int.TryParse(Console.ReadLine(), out taskIndex) && taskIndex >= 1 && taskIndex <= tasks.Count)
+            {
+                taskIndex--;  // Adjust to zero-based index
+                break;
+            }
+            Console.WriteLine("Invalid task number. Please try again.");
+        }
+
+        // Get the task to edit
+        TaskItem taskToEdit = tasks[taskIndex];
+
+        // Menu for editing the selected task
+        Console.WriteLine("\nWhat would you like to do with this task?");
+        Console.WriteLine("1. Edit task details (Title, Due Date, Project)");
+        Console.WriteLine("2. Mark task as done");
+        Console.WriteLine("3. Delete task");
+        Console.WriteLine("4. Cancel");
+
+        string editChoice = Console.ReadLine();
+
+        switch (editChoice)
+        {
+            case "1":
+                // Edit task details directly in this method
+                // Edit task title
+                Console.Write($"Current title: {taskToEdit.Title}\nEnter new title (or leave blank to keep it): ");
+                string newTitle = Console.ReadLine();
+                if (!string.IsNullOrWhiteSpace(newTitle))
+                {
+                    taskToEdit.Title = newTitle;
+                }
+
+                // Edit task due date
+                DateTime newDueDate;
+                while (true)
+                {
+                    Console.Write($"Current due date: {taskToEdit.DueDate:MM/dd/yyyy}\nEnter new due date (MM/dd/yyyy): ");
+                    if (DateTime.TryParse(Console.ReadLine(), out newDueDate) && newDueDate > DateTime.Now)
+                    {
+                        taskToEdit.DueDate = newDueDate;
+                        break;
+                    }
+                    Console.WriteLine("Invalid due date. Please enter a future date in the format MM/dd/yyyy.");
+                }
+
+                // Edit task project
+                Console.Write($"Current project: {taskToEdit.Project}\nEnter new project (or leave blank to keep it): ");
+                string newProject = Console.ReadLine();
+                if (!string.IsNullOrWhiteSpace(newProject))
+                {
+                    taskToEdit.Project = newProject;
+                }
+
+                Console.WriteLine("Task details updated successfully.");
+                break;
+            case "2":
+                // Mark task as done
+                taskToEdit.Status = true;
+                Console.WriteLine("Task marked as done.");
+                break;
+            case "3":
+                // Delete the task
+                tasks.RemoveAt(taskIndex);
+                Console.WriteLine("Task deleted.");
+                break;
+            case "4":
+                // Cancel editing
+                Console.WriteLine("No changes were made.");
+                break;
+            default:
+                Console.WriteLine("Invalid option. Returning to the menu.");
+                break;
+        }
+
+        Console.WriteLine("Press any key to return to the menu...");
+        Console.ReadKey();
     }
 
     static void SaveAndQuit()
@@ -264,7 +362,6 @@ class Program
             // Print an error message if there is an exception while saving the file
             Console.WriteLine($"Error saving file: {ex.Message}");
         }
-        Environment.Exit(0); // Exit the program
     }
 }
 
